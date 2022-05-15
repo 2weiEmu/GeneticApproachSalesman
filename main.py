@@ -22,6 +22,8 @@ distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 6
  ["111 57 185 251 26 75 163 39 93 140 101 101 226 81 69 159 86 211 161 0 115"],
  ["24 109 84 137 92 49 144 152 112 50 71 78 125 127 49 50 52 128 90 115 0"]]
 
+
+
 def format_distance_table(in_table : list):
 
     for x, c in enumerate(in_table):
@@ -29,6 +31,16 @@ def format_distance_table(in_table : list):
         distances_list = c[0].split(" ")
         in_table[x] = distances_list
 
+def tour_length(stops):
+    total_length : int = 0
+    for x in range(len(stops) - 1):
+        total_length += distance_table[stops[x]][stops[x+1]]
+    return total_length
+
+class Tour:
+    def __init__(self, stops : list):
+        self.stops = stops
+        self.length = tour_length(stops)
 
 def initialise_tour_set(in_table : list, size: int):
 
@@ -51,8 +63,6 @@ def initialise_tour_set(in_table : list, size: int):
     return tour_set
 
 
-def tour_length(tour):
-    pass
 
 def main():
     
