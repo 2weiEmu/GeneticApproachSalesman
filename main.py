@@ -23,67 +23,106 @@ distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 6
  ["24 109 84 137 92 49 144 152 112 50 71 78 125 127 49 50 52 128 90 115 0"]]
 
 
+def format_distance_table(distance_table):
+    out_table : list = []
+    for c in distance_table:
 
-def format_distance_table(in_table : list):
-
-    for x, c in enumerate(in_table):
-
-        distances_list = c[0].split(" ")
-        in_table[x] = distances_list
-
-def tour_length(stops):
-    total_length : int = 0
-    for x in range(len(stops) - 1):
-        total_length += distance_table[stops[x]][stops[x+1]]
-    return total_length
+        c = [int(k) for k in c[0].split(" ")]
+        out_table.append(c)
+    
+    return out_table
 
 class Tour:
-    def __init__(self, stops : list):
-        self.stops = stops
-        self.length = tour_length(stops)
 
-def initialise_tour_set(in_table : list, size: int):
+    def __init__(self, distance_table):
+        # Random Tour generated on creation
 
-    tour_set : list = [[] for c in range(size)]
+        self.tour_route : list = [0]
+        while (len(self.tour_route)) < 21:
+            number = randint(1, 20)
+            if number in self.tour_route:
+                continue
+            else:
+                self.tour_route.append(number)
+        self.tour_route.append(0)
+        
+        self.route_length : int = 0
+        for x in range(len(self.tour_route) - 1):
+            self.route_length += distance_table[self.tour_route[x]][self.tour_route[x+1]]
 
-    for x in range(size):
-        tour = [0]
-        for x in range(len(in_table)):
-            stop = randint(1,24)
-            while True:
-                if stop in tour:
-                    stop = randint(1,24)
-                else: break
-            tour.append(stop)
-
-        tour.append(0)
-
-        tour_set[x] = tour
-
-    return tour_set
+    def __repr__(self):
+        temp = [str(k) for k in self.tour_route]
+        return " ".join(temp) + "+++" + str(self.route_length) + "\n"
 
 
+    def update_route_length(self, distance_table):
+        self.route_length = 0
+        for x in range(len(self.tour_route) - 1):
+            self.route_length += distance_table[self.tour_route[x]][self.tour_route[x+1]]
+
+def truncate_select(set, lose_percent):
+    leng = len(set)
+    drop = leng - (leng * lose_percent)
+    return set[:drop]
+
+def order_crossover_set(set, meant_length):
+    needed: int = meant_length - len(set)
+    
 
 def main():
     
-    format_distance_table(distance_table)
+    # Initialise Set
+    distance_table_new = format_distance_table(distance_table)
 
-    tour_set = initialise_tour_set(distance_table, 2048)
+    print("Generating and Initialising Routes...")
 
+    route_list : list = [Tour(distance_table_new) for c in range(2048)]
+    print("Finished Generating and Initialising Routes.")
     
     for x in range(500):
+        
+        smallest = route_list[0].route_length
+
+        smallest_idx = 0
+        for count, tour in enumerate(route_list):
+            if tour.route_length < smallest:
+                smallest = tour.route_length
+                smallest_idx = count
+
+        # Progress Bar
+        print ("|" + ((1 + (x//5)) * ("\u2588")) + ((100 - (x//5) - 1) * " ") + "|", str(x/5).rjust(4)+"%" , "LENGTH:", str(smallest).rjust(5), "SET Length:", str(len(route_list)).rjust(6), end="\r")
+
+        # === Evaluate ===
+        for tour in route_list:
+            tour.update_route_length(distance_table_new)
         # Sort Tour Set by fitness value
 
-        # Select Tours
+        for j in range(len(route_list)):
+            for i in range(len(route_list) - 1):
 
+                if route_list[i].route_length > route_list[i+1].route_length:
+                    route_list[i], route_list[i+1] = route_list[i+1], route_list[i]
+
+        # === Select ===
+        # Select Tours
+        route_list = truncate_select(route_list, 0.4)
+
+        # === Crossover ===
         # Crossover Old Tours, and keep originals
 
+
+        # Mutation
         # Mutate Tours
 
+        # Output Shortest Tour Found
+
+        # Update Loading Bar Progress
+
+    print("\n Genetic Calculations Complete.")
     # Sort Tour set by fitness value
     
     # Output Best Tour
-
+        
 
 
 if __name__ == "__main__":
