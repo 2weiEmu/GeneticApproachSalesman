@@ -1,5 +1,6 @@
 from random import randint
 import os
+import cProfile
 
 distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 69 111 24"], 
  ["94 0 156 231 64 93 108 68 37 150 130 57 233 26 62 140 61 229 120 57 109"],
@@ -139,6 +140,7 @@ def mutate_set(set, swap_amount, mutate_percent):
 
 
 ITERATIONS = 250
+ROUTE_SET = 2048 # 2^13
 
 def main():
     
@@ -148,7 +150,7 @@ def main():
 
     print("Generating and Initialising Routes...")
 
-    route_list : list = [Tour(distance_table_new) for c in range(2048)]
+    route_list : list = [Tour(distance_table_new) for c in range(ROUTE_SET)]
     print("Finished Generating and Initialising Routes.")
 
     ultimate_smallest : int = route_list[0].route_length
@@ -202,7 +204,7 @@ def main():
 
         # === Crossover ===
         # Crossover Old Tours, and keep originals
-        route_list = order_crossover_set(route_list, 2048, distance_table_new)
+        route_list = order_crossover_set(route_list, ROUTE_SET, distance_table_new)
 
         # === Mutation ===
         # Mutate Tours
@@ -214,7 +216,7 @@ def main():
     # Sort Tour set by fitness value
     
     # Output Best Tour
-    ultimate_smallest_tour.update_route_length()
+    ultimate_smallest_tour.update_route_length(distance_table_new)
     print("Shortest Route:", ultimate_smallest_tour)
 
     f = open("saves.txt", 'w')
@@ -222,4 +224,4 @@ def main():
     f.close
 
 if __name__ == "__main__":
-    main()
+    cProfile.run('main()')
