@@ -1,4 +1,5 @@
 from random import randint
+import os
 
 distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 69 111 24"], 
  ["94 0 156 231 64 93 108 68 37 150 130 57 233 26 62 140 61 229 120 57 109"],
@@ -60,26 +61,100 @@ class Tour:
         for x in range(len(self.tour_route) - 1):
             self.route_length += distance_table[self.tour_route[x]][self.tour_route[x+1]]
 
+    def check_if_valid(self):
+        count = 0
+        for x in range(1, 21):
+            temp_count = 0
+            temp_count += self.tour_route.count(x)
+            if temp_count > 1:
+                print("Counted Too many of 1")
+                exit()
+            
+            count += temp_count
+        
+        if self.tour_route[0] != 0 or self.tour_route[-1] != 0:
+            print("Not valid endpoint(s)")
+            exit()
+
 def truncate_select(set, lose_percent):
     leng = len(set)
-    drop = leng - (leng * lose_percent)
+    drop = int(leng - (leng * lose_percent))
     return set[:drop]
 
-def order_crossover_set(set, meant_length):
+def order_crossover_set(set, meant_length, dist_table):
     needed: int = meant_length - len(set)
+
+    for x in range(needed):
+        new_tour = Tour(dist_table)
+        
+        order_cross_route = [" " for x in range(22)]
+        order_cross_route[0] = 0
+        order_cross_route[-1] = 0
+        start = randint(1,10)
+        end = randint(11,20) 
+
+        random_tour_1 = set[randint(0, len(set)) - 1]
+        random_tour_2 = set[randint(0, len(set)) - 1]
+
+        order_cross_route[start:end] = random_tour_1.tour_route[start:end]
+        for j in range(end, end+len(order_cross_route)):
+            counter = end
+            if order_cross_route[j%22] == " ":
+                iter_route = iter(random_tour_2.tour_route)
+                while True:
+                    
+                    insert = random_tour_2.tour_route[counter%22]
+                    if counter > 50:
+                        exit()
+                    if insert in order_cross_route:
+                        counter += 1
+                        insert = random_tour_2.tour_route[counter%22]
+                    else:
+                        order_cross_route[j%22] = insert
+                        break
+
+        if len(order_cross_route) < 22:
+            print("CROSS ARRAY TOO SMALL")
+            exit()
+        if order_cross_route[0] != 0 or order_cross_route[-1] != 0:
+            print("ROUTE DOES NOT FINISH VALID")
+            exit()
+        new_tour.tour_route = order_cross_route
+        new_tour.update_route_length(dist_table)
+        set.append(new_tour)
     
+    return set
+                    
+def mutate_set(set, swap_amount, mutate_percent):
+    for x in range(int(mutate_percent * len(set))):
+
+        random_tour = set[randint(0, len(set) - 1)]
+        swap_1 = randint(1,20)
+        swap_2 = randint(1,20)
+        
+        random_tour.tour_route[swap_1], random_tour.tour_route[swap_2] = random_tour.tour_route[swap_2], random_tour.tour_route[swap_1]
+    
+    return set
+
+
+
+ITERATIONS = 250
 
 def main():
     
     # Initialise Set
     distance_table_new = format_distance_table(distance_table)
+    os.system("cls")
 
     print("Generating and Initialising Routes...")
 
     route_list : list = [Tour(distance_table_new) for c in range(2048)]
     print("Finished Generating and Initialising Routes.")
-    
-    for x in range(500):
+
+    ultimate_smallest : int = route_list[0].route_length
+    ultimate_smallest_tour = []
+    print("Beginning Calculations...\n\n\n")
+    for x in range(ITERATIONS):
         
         smallest = route_list[0].route_length
 
@@ -89,8 +164,26 @@ def main():
                 smallest = tour.route_length
                 smallest_idx = count
 
+        if smallest < ultimate_smallest: 
+            ultimate_smallest = smallest
+            ultimate_smallest_tour = route_list[smallest_idx]
+
+        sum_route_length = 0
+        for tour in route_list:
+            sum_route_length += tour.route_length
+        
+        average_set_length = sum_route_length/len(route_list)
+
+        for tour in route_list:
+            tour.check_if_valid()
+
         # Progress Bar
-        print ("|" + ((1 + (x//5)) * ("\u2588")) + ((100 - (x//5) - 1) * " ") + "|", str(x/5).rjust(4)+"%" , "LENGTH:", str(smallest).rjust(5), "SET Length:", str(len(route_list)).rjust(6), end="\r")
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+        for j in range(3): print(LINE_UP, end=LINE_CLEAR)
+        print("|" + ((1 + int((x/ITERATIONS) * 100)) * ("\u2588")) + ((100 - int((x/ITERATIONS)*100) - 1) * " ") + "|", str(100 * x/ITERATIONS).rjust(4)+"%")
+        print("Smallest Length:", str(smallest).rjust(5), "Set Length:", str(len(route_list)).rjust(6))
+        print("Ultimate Smallest Length:", str(ultimate_smallest).rjust(5), "Average Length of Set:", str(average_set_length).rjust(5))
 
         # === Evaluate ===
         for tour in route_list:
@@ -109,21 +202,24 @@ def main():
 
         # === Crossover ===
         # Crossover Old Tours, and keep originals
+        route_list = order_crossover_set(route_list, 2048, distance_table_new)
 
-
-        # Mutation
+        # === Mutation ===
         # Mutate Tours
+        route_list = mutate_set(route_list, 1, 0.1)
 
         # Output Shortest Tour Found
 
-        # Update Loading Bar Progress
-
-    print("\n Genetic Calculations Complete.")
+    print("\nGenetic Calculations Complete.")
     # Sort Tour set by fitness value
     
     # Output Best Tour
-        
+    ultimate_smallest_tour.update_route_length()
+    print("Shortest Route:", ultimate_smallest_tour)
 
+    f = open("saves.txt", 'w')
+    f.writelines("Length: " + str(ultimate_smallest) +  "| Tour: " + str(ultimate_smallest_tour)) 
+    f.close
 
 if __name__ == "__main__":
     main()
