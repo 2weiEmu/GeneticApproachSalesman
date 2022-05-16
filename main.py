@@ -1,6 +1,7 @@
 from random import randint
 import os
-import cProfile
+import cProfile 
+
 
 distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 69 111 24"], 
  ["94 0 156 231 64 93 108 68 37 150 130 57 233 26 62 140 61 229 120 57 109"],
@@ -82,6 +83,8 @@ def truncate_select(set, lose_percent):
     drop = int(leng - (leng * lose_percent))
     return set[:drop]
 
+
+
 def order_crossover_set(set, meant_length, dist_table):
     needed: int = meant_length - len(set)
 
@@ -139,8 +142,11 @@ def mutate_set(set, swap_amount, mutate_percent):
 
 
 
-ITERATIONS = 250
-ROUTE_SET = 2048 # 2^13
+ITERATIONS = 200
+ROUTE_SET = 4096 
+TRUNCATE_AMOUNT = 0.6 # Between 0.99 and 0.01 please
+MUTATE_SWAP = 1 # No effect yet
+MUTATE_PERCENTAGE = 0.5 # Between 0.99 and 0.01 please
 
 def main():
     
@@ -200,7 +206,7 @@ def main():
 
         # === Select ===
         # Select Tours
-        route_list = truncate_select(route_list, 0.4)
+        route_list = truncate_select(route_list, TRUNCATE_AMOUNT)
 
         # === Crossover ===
         # Crossover Old Tours, and keep originals
@@ -208,7 +214,7 @@ def main():
 
         # === Mutation ===
         # Mutate Tours
-        route_list = mutate_set(route_list, 1, 0.1)
+        route_list = mutate_set(route_list, MUTATE_SWAP, MUTATE_PERCENTAGE)
 
         # Output Shortest Tour Found
 
@@ -219,7 +225,7 @@ def main():
     ultimate_smallest_tour.update_route_length(distance_table_new)
     print("Shortest Route:", ultimate_smallest_tour)
 
-    f = open("saves.txt", 'w')
+    f = open("saves.txt", 'a')
     f.writelines("Length: " + str(ultimate_smallest) +  "| Tour: " + str(ultimate_smallest_tour)) 
     f.close
 
