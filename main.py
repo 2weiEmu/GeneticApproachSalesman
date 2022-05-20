@@ -1,6 +1,8 @@
 from random import randint
 import os
-import cProfile 
+import cProfile, pstats
+import numpy as np
+
 
 
 distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 69 111 24"], 
@@ -83,8 +85,6 @@ def truncate_select(set, lose_percent):
     drop = int(leng - (leng * lose_percent))
     return set[:drop]
 
-
-
 def order_crossover_set(set, meant_length, dist_table):
     needed: int = meant_length - len(set)
 
@@ -125,8 +125,8 @@ def order_crossover_set(set, meant_length, dist_table):
             exit()
         new_tour.tour_route = order_cross_route
         new_tour.update_route_length(dist_table)
+        
         set.append(new_tour)
-    
     return set
                     
 def mutate_set(set, swap_amount, mutate_percent):
@@ -140,13 +140,20 @@ def mutate_set(set, swap_amount, mutate_percent):
     
     return set
 
+def sort_route_list(route_list):
+    for j in range(len(route_list)):
+            for i in range(len(route_list) - 1):
 
+                if route_list[i].route_length > route_list[i+1].route_length:
+                    route_list[i], route_list[i+1] = route_list[i+1], route_list[i]
+
+    return route_list
 
 ITERATIONS = 200
-ROUTE_SET = 4096 
-TRUNCATE_AMOUNT = 0.6 # Between 0.99 and 0.01 please
+ROUTE_SET = 1024 
+TRUNCATE_AMOUNT = 0.4 # Between 0.99 and 0.01 please (0.4 is a good value here in combination with a mutation percentage of 0.1, and a mutate swap of 1)
 MUTATE_SWAP = 1 # No effect yet
-MUTATE_PERCENTAGE = 0.5 # Between 0.99 and 0.01 please
+MUTATE_PERCENTAGE = 0.1 # Between 0.99 and 0.01 please
 
 def main():
     
@@ -159,22 +166,20 @@ def main():
     route_list : list = [Tour(distance_table_new) for c in range(ROUTE_SET)]
     print("Finished Generating and Initialising Routes.")
 
+
     ultimate_smallest : int = route_list[0].route_length
-    ultimate_smallest_tour = []
+
     print("Beginning Calculations...\n\n\n")
     for x in range(ITERATIONS):
         
         smallest = route_list[0].route_length
 
-        smallest_idx = 0
-        for count, tour in enumerate(route_list):
+        for tour in route_list:
             if tour.route_length < smallest:
                 smallest = tour.route_length
-                smallest_idx = count
 
         if smallest < ultimate_smallest: 
             ultimate_smallest = smallest
-            ultimate_smallest_tour = route_list[smallest_idx]
 
         sum_route_length = 0
         for tour in route_list:
@@ -198,12 +203,7 @@ def main():
             tour.update_route_length(distance_table_new)
         # Sort Tour Set by fitness value
 
-        for j in range(len(route_list)):
-            for i in range(len(route_list) - 1):
-
-                if route_list[i].route_length > route_list[i+1].route_length:
-                    route_list[i], route_list[i+1] = route_list[i+1], route_list[i]
-
+        route_list = sort_route_list(route_list)
         # === Select ===
         # Select Tours
         route_list = truncate_select(route_list, TRUNCATE_AMOUNT)
@@ -222,12 +222,19 @@ def main():
     # Sort Tour set by fitness value
     
     # Output Best Tour
-    ultimate_smallest_tour.update_route_length(distance_table_new)
-    print("Shortest Route:", ultimate_smallest_tour)
+    print(ultimate_smallest)
 
     f = open("saves.txt", 'a')
-    f.writelines("Length: " + str(ultimate_smallest) +  "| Tour: " + str(ultimate_smallest_tour)) 
+    f.writelines("Length: " + str(ultimate_smallest)) 
     f.close
 
 if __name__ == "__main__":
-    cProfile.run('main()')
+    profiler = cProfile.Profile()
+    profiler.enable()
+
+    main()
+
+    profiler.disable()
+    stats = pstats.Stats(profiler).sort_stats('tottime')
+    stats.dump_stats("out.prof")
+    stats.print_stats()
