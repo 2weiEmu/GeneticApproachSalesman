@@ -29,9 +29,6 @@ def main():
     route_list = np.array([ROUTE_SET,2])
 
 
-    
-
-
 if __name__ == "__main__":
 
     profiler = cProfile.Profile()

@@ -1,9 +1,7 @@
-from random import randint
+from random import randint, random
 import os
 import cProfile, pstats
 import numpy as np
-
-
 
 distance_table = [["0 94 76 141 91 60 120 145 91 74 90 55 145 108 41 49 33 151 69 111 24"], 
  ["94 0 156 231 64 93 108 68 37 150 130 57 233 26 62 140 61 229 120 57 109"],
@@ -44,7 +42,8 @@ class Tour:
 
         self.tour_route : list = [0]
         while (len(self.tour_route)) < 21:
-            number = randint(1, 20)
+            number = int(random() * 21)
+            # number = randint(1, 20)
             if number in self.tour_route:
                 continue
             else:
@@ -149,9 +148,59 @@ def sort_route_list(route_list):
 
     return route_list
 
-ITERATIONS = 200
-ROUTE_SET = 1024 
-TRUNCATE_AMOUNT = 0.4 # Between 0.99 and 0.01 please (0.4 is a good value here in combination with a mutation percentage of 0.1, and a mutate swap of 1)
+# In here I try a new way of sorting and directly truncating the data
+def new_truncate_select(set, lose_percent, set_size):
+    leng = len(set)
+    drop = int(leng - (leng * lose_percent))
+
+    shortest = set[0].route_length
+    longest = 0
+    for route in set:
+        # Brackets have to be there - otherwise assignes the answer of the boolean to rl
+        if (rl := route.route_length) > longest:
+            longest = rl
+        if rl < shortest:
+            shortest = rl
+    
+    length_range = longest - shortest
+
+    retain_percent = 1 - lose_percent
+    acceptable_value_max = shortest + (length_range * lose_percent)
+    out_set = []
+    for route in set:
+
+        if route.route_length <= acceptable_value_max:
+            out_set.append(route)
+        
+    if len(out_set) != drop:
+        difference = len(out_set) - drop
+        
+        if difference > 0:
+
+            out_set = out_set[:len(out_set) - difference]
+        
+        """
+        elif difference < 0:
+
+            acceptable_value_max = shortest + (length_range * (lose_percent + 0.01))
+
+            for x in range(-1 * difference):
+
+               for route in set:
+                    if acceptable_value_max >= route.route_length:
+                        out_set.append(route)
+                        break
+        """
+
+    # print(out_set)
+    # print(set)
+
+    # return set[:drop]
+    return out_set
+
+ITERATIONS = 200 # 200
+ROUTE_SET = 1024 # 1024
+TRUNCATE_AMOUNT = 0.2 # Between 0.99 and 0.01 please (0.4 is a good value here in combination with a mutation percentage of 0.1, and a mutate swap of 1)
 MUTATE_SWAP = 1 # No effect yet
 MUTATE_PERCENTAGE = 0.1 # Between 0.99 and 0.01 please
 
@@ -165,7 +214,6 @@ def main():
 
     route_list : list = [Tour(distance_table_new) for c in range(ROUTE_SET)]
     print("Finished Generating and Initialising Routes.")
-
 
     ultimate_smallest : int = route_list[0].route_length
 
@@ -203,10 +251,12 @@ def main():
             tour.update_route_length(distance_table_new)
         # Sort Tour Set by fitness value
 
-        route_list = sort_route_list(route_list)
+        # route_list = sort_route_list(route_list)
         # === Select ===
         # Select Tours
-        route_list = truncate_select(route_list, TRUNCATE_AMOUNT)
+        # new_truncate_select is substantially faster (but maybe a bit less... accurate? nvm it seems competitive) (makes the code run at least twice as fast)
+        route_list = new_truncate_select(route_list, TRUNCATE_AMOUNT, ROUTE_SET)
+        # route_list = truncate_select(route_list, TRUNCATE_AMOUNT)
 
         # === Crossover ===
         # Crossover Old Tours, and keep originals
@@ -225,7 +275,7 @@ def main():
     print(ultimate_smallest)
 
     f = open("saves.txt", 'a')
-    f.writelines("Length: " + str(ultimate_smallest)) 
+    f.writelines("\nLength: " + str(ultimate_smallest)) 
     f.close
 
 if __name__ == "__main__":

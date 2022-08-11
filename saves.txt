@@ -4,4 +4,51 @@ Length: 1108| Tour: 0 15 11 4 19 7 1 13 8 6 18 2 16 3 12 17 9 10 5 14 20 0+++132
 Length: 1074| Tour: 0 20 9 17 12 3 15 2 18 6 1 8 13 11 7 19 4 10 5 14 16 0+++1196
 Length: 1094| Tour: 0 20 13 19 7 1 4 8 11 6 18 2 15 3 12 17 9 10 5 14 16 0+++1293
 Length: 1110| Tour: 0 20 14 16 11 13 18 2 15 3 12 17 9 10 5 4 19 7 1 6 8 0+++1269
-Length: 1106Length: 2162Length: 1083Length: 1103Length: 1095Length: 1136
+Length: 1106
+Length: 2162
+Length: 1083
+Length: 1103
+Length: 1095
+Length: 1136
+Length: 1091
+Length: 1599
+Length: 1505
+Length: 1532
+Length: 1540
+Length: 1438
+Length: 1612
+Length: 1538
+Length: 1286
+Length: 1249
+Length: 1177
+Length: 1231
+Length: 1178
+Length: 1138
+Length: 1181
+Length: 1172
+Length: 1160
+Length: 1117
+Length: 1140
+Length: 1150
+Length: 1190
+Length: 1187
+Length: 1073
+Length: 1197
+Length: 1111
+Length: 1129
+Length: 1137
+Length: 1112
+Length: 1161
+Length: 1129
+Length: 1261
+Length: 1094
+Length: 1158
+Length: 1180
+Length: 1150
+Length: 1187
+Length: 1203
+Length: 1112
+Length: 1104
+Length: 1150
+Length: 1193
+Length: 1128
