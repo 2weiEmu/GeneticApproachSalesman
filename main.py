@@ -58,7 +58,6 @@ class Tour:
         temp = [str(k) for k in self.tour_route]
         return " ".join(temp) + "+++" + str(self.route_length) + "\n"
 
-
     def update_route_length(self, distance_table):
         self.route_length = 0
         for x in range(len(self.tour_route) - 1):
@@ -285,6 +284,6 @@ if __name__ == "__main__":
     main()
 
     profiler.disable()
-    stats = pstats.Stats(profiler).sort_stats('tottime')
+    stats = pstats.Stats(profiler).sort_stats('ncalls')
     stats.dump_stats("out.prof")
     stats.print_stats()
